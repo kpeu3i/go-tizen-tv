@@ -19,8 +19,8 @@ const (
 	defaultWebsocketPort         = "8002"
 	defaultWebsocketSecurePort   = "8002"
 	defaultWebsocketDialTimeout  = 1 * time.Second
-	defaultWebsocketReadTimeout  = 5 * time.Second
-	defaultWebsocketWriteTimeout = 5 * time.Second
+	defaultWebsocketReadTimeout  = 30 * time.Second
+	defaultWebsocketWriteTimeout = 30 * time.Second
 )
 
 type WebsocketKeyState string
@@ -210,13 +210,15 @@ func (c *WebsocketAPIClient) Connect(token string) (ConnectResponseMessage, erro
 		_ = c.runWriter()
 	}()
 
-	message, err := c.wait()
-	if err != nil {
-		return ConnectResponseMessage{}, err
+	var message []byte
+	for {
+		message = <-c.responseMessages
+		if bytes.Contains(message, []byte("ms.channel.connect")) {
+			break
+		}
 	}
 
 	response := ConnectResponseMessage{}
-
 	err = json.Unmarshal(message, &response)
 	if err != nil {
 		return ConnectResponseMessage{}, err
@@ -430,15 +432,9 @@ func (c *WebsocketAPIClient) wait() ([]byte, error) {
 	for {
 		select {
 		case message := <-c.responseMessages:
-			if bytes.Contains(message, []byte("ms.remote.touchDisable")) ||
-				bytes.Contains(message, []byte("ms.remote.touchEnable")) ||
-				bytes.Contains(message, []byte("ms.remote.imeEnd")) {
-				continue
-			}
-
 			return message, nil
 		case <-time.After(c.readTimeout):
-			return nil, fmt.Errorf("response waiting timeout: %s", c.writeTimeout)
+			return nil, fmt.Errorf("response waiting timeout: %s", c.readTimeout)
 		}
 	}
 }
