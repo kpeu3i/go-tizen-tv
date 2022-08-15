@@ -23,6 +23,7 @@ type HTTPAPIClient interface {
 	GetInfo() (tizenapi.GetInfoResponse, error)
 	GetApp(id string) (tizenapi.GetAppResponse, error)
 	OpenApp(id string) error
+	InstallApp(id string) error
 	CloseApp(id string) error
 }
 

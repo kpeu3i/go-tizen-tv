@@ -209,6 +209,28 @@ func (c *HTTPAPIClient) OpenApp(id string) error {
 	return nil
 }
 
+func (c *HTTPAPIClient) InstallApp(id string) error {
+	request, err := http.NewRequest(http.MethodPut, c.generateAppURL(id), nil)
+	if err != nil {
+		panic(err)
+	}
+
+	response, err := c.httpClient.Do(request)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = response.Body.Close()
+	}()
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("invalid response status: %d", response.StatusCode)
+	}
+
+	return nil
+}
+
 func (c *HTTPAPIClient) CloseApp(id string) error {
 	request, err := http.NewRequest("DELETE", c.generateAppURL(id), nil)
 	if err != nil {

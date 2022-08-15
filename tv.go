@@ -264,6 +264,10 @@ func (tv *TV) OpenApp(id string) error {
 	return tv.httpClient.OpenApp(id)
 }
 
+func (tv *TV) InstallApp(id string) error {
+	return tv.httpClient.InstallApp(id)
+}
+
 func (tv *TV) CloseApp(id string) error {
 	return tv.httpClient.CloseApp(id)
 }
